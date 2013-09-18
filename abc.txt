@@ -176,7 +176,7 @@ import java.util.Properties;
 public class OracleJdbcExample {
 
     public String getQuery() {
-        String qry_file = "/var/lib/tomcat7/webapps/ROOT/WEB-INF/classes/user/gppquery.sql";
+        String qry_file = "/var/lib/tomcat7/webapps/ROOT/WEB-INF/classes/user/query.sql";
         String sql="";
         try{
            FileInputStream f1 = new FileInputStream(qry_file);
@@ -200,7 +200,7 @@ public class OracleJdbcExample {
         int i=0;
       
         //creating connection to Oracle database using JDBC
-        Connection conn = DriverManager.getConnection(url,"guru","unix11");
+        Connection conn = DriverManager.getConnection(url,"guru","1");
 
 
         //creating PreparedStatement object to execute query

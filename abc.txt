@@ -227,3 +227,29 @@ public class OracleJdbcExample {
         }
     }*/
 }
+
+
+
+
+
+
+
+
+
+#include<stdio.h>
+#include<string.h>
+int main()
+{
+    printf("welcome\n");
+    FILE *fp = fopen("f1.txt","r");
+    char data[128];
+    char *d1;
+    while(fgets(data,128,fp)!=NULL){
+        d1=(char *)malloc(30);
+        printf("line is<%s>\n",data);
+        strcpy(d1,data);
+        putenv(d1);
+    }
+    fclose(fp);
+    system("./f1.sh");
+}

@@ -1,10 +1,7 @@
-==> newauth.jsp <==
-<jsp:useBean id="user" class="user.OracleJdbcExample" scope="session"/>
-<jsp:setProperty name="user" property="*"/>
-<%@ page import="java.io.*, java.util.*, java.util.regex.Pattern,java.util.regex.Matcher" %>
+<%@ page import="java.io.*, java.sql.*, java.util.*, java.util.regex.Pattern,java.util.regex.Matcher" %>
 <html>
 <head>
-<title>Dashboard</title>
+<title>GPP Dashboard</title>
 <style type="text/css">
 body {
     background-color:#DCDCDC;
@@ -80,7 +77,7 @@ table {
 </head>
 <body>
 <div id="header" style="background-color:#333333;border-radius:15px">
-<h1 class="mainh1" align="center" >GPP Dashboard</h1>
+<h1 class="mainh1" align="center" > Dashboard</h1>
 </div>
 
 <%!
@@ -90,6 +87,52 @@ public String getColor(int val){
     }else{
         return "red";
     }
+}
+public String getQuery(String s1) {
+        String qry_file = s1;
+        String sql="";
+        try{
+           FileInputStream f1 = new FileInputStream(qry_file);
+           DataInputStream d1 = new DataInputStream(f1);
+           String data;
+           while((data=d1.readLine()) != null){
+               sql += data;
+               sql += " ";
+           }
+           f1.close();
+        }
+        catch(Exception e){
+            System.err.println("Error opening query file");
+        }
+        return sql;
+}
+
+public String[][] getData() throws SQLException{
+        //URL of Oracle database server
+        String url = "jdbc:oracle:thin:@localhost:1521:XE"; 
+        String [][]emparr = new String[5][5];
+        int i=0,j=0;
+      
+        //creating connection to Oracle database using JDBC
+        Connection conn = DriverManager.getConnection(url,"guru","aa");
+
+
+        //creating PreparedStatement object to execute query
+        String sql = getQuery("/var/lib/tomcat7/webapps/ROOT/WEB-INF/classes/user/gppquery.sql");
+        PreparedStatement preStatement = conn.prepareStatement(sql);
+    
+        ResultSet result = preStatement.executeQuery();
+      
+        while(result.next()){
+            emparr[i][j]=result.getString(1);
+            emparr[i][j+1]=result.getString(2);
+            emparr[i][j+2]=result.getString(3);
+            emparr[i][j+3]=result.getString(4);
+            emparr[i][j+4]=result.getString(5);
+            i++;
+            //System.out.println("Emp Id : " + result.getString("empno"));
+        }
+    return emparr;
 }
 %>
 
@@ -103,18 +146,18 @@ public String getColor(int val){
 <div class="layc" id="box1" >
 <TABLE border=1 width="100%">
 <tr>
-<td width="8%" class="h1i1">CIN</td>
-<td width="20%" class="h1i1">e2</td> 
-<td width="72%" align="center" class="h1i2">e3</td>
+<td width="8%" class="h1i1">BIN</td>
+<td width="20%" class="h1i1">TXN Received</td> 
+<td width="72%" align="center" class="h1i2">Denial Count</td>
 </tr>
 </TABLE>
 <TABLE border=0 width="100%">
 <tr>
 <td></td>
 <td></td>
-<td width="24%" align="center">f1 </td>
-<td width="24%" align="center">f2</td>
-<td width="24%" align="center"> f3 </td>
+<td width="24%" align="center">Late Response </td>
+<td width="24%" align="center">Bucket Lock</td>
+<td width="24%" align="center"> Other Denials</td>
 </tr>
 </TABLE>
 <hr/>
@@ -128,14 +171,14 @@ String[][] arr1;
 int i=0;
 Class.forName("oracle.jdbc.OracleDriver");
 try {
-    String [][]emparr=user.getData();
+    String [][]emparr=getData();
     while(i < emparr.length)
     {
 %>
 <TR>
 <%
         out.println("<td class=\"nbox\">"+ emparr[i][0] + "</td>");
-        out.println("<td><input class=\"cbox\" type=\"text\" style=\"background-color:" + emparr[i][1] + ";\" disabled=\"disabled\"/></td>");
+        out.println("<td><input class=\"cbox\" type=\"text\" style=\"background-color:" + getColor(Integer.parseInt(emparr[i][1]))+ ";\" disabled=\"disabled\"/></td>");
         out.println("<td class=\"nbox\" align=\"right\">"+ emparr[i][2] + "</td>");
         out.println("<td ><input class=\"cbox\" type=\"text\" style=\"background-color:" + getColor(Integer.parseInt(emparr[i][2])) + ";\" disabled=\"disabled\"/></td>");
         out.println("<td class=\"nbox\" align=\"right\">"+ emparr[i][3] + "</td>");
@@ -162,94 +205,17 @@ try {
 </body>
 </html>
 
-==> OracleJdbcExample.java <==
-package user;
-import java.sql.*;
-import java.io.*;
-import java.util.*;
-import java.util.Properties;
-
-/**
- * Simple Java Program to connect Oracle database by using Oracle JDBC thin driver
- * Make sure you have Oracle JDBC thin driver in your classpath before running this program
- */
-public class OracleJdbcExample {
-
-    public String getQuery() {
-        String qry_file = "/var/lib/tomcat7/webapps/ROOT/WEB-INF/classes/user/query.sql";
-        String sql="";
-        try{
-           FileInputStream f1 = new FileInputStream(qry_file);
-           DataInputStream d1 = new DataInputStream(f1);
-           String data;
-           while((data=d1.readLine()) != null){
-               sql += data;
-           }
-           f1.close();
-        }
-        catch(Exception e){
-            System.err.println("Error opening query file");
-        }
-        return sql;
-    }
-
-    public String[][] getData() throws SQLException{
-        //URL of Oracle database server
-        String url = "jdbc:oracle:thin:@localhost:1521:XE"; 
-        String [][]emparr = new String[5][5];
-        int i=0;
-      
-        //creating connection to Oracle database using JDBC
-        Connection conn = DriverManager.getConnection(url,"guru","1");
-
-
-        //creating PreparedStatement object to execute query
-        String sql = getQuery();
-        PreparedStatement preStatement = conn.prepareStatement(sql);
-    
-        ResultSet result = preStatement.executeQuery();
-      
-        while(result.next()){
-            emparr[i][0]=result.getString(1);
-            emparr[i][1]=result.getString(2);
-            emparr[i][2]=result.getString(3);
-            emparr[i][3]=result.getString(4);
-            emparr[i][4]=result.getString(5);
-            i++;
-            //System.out.println("Emp Id : " + result.getString("empno"));
-        }
-    return emparr;
-    }
-    /*public static void main(String []args) throws SQLException{
-        String []arr1=getData();
-        for(int i=0;i<5;i++){
-            System.out.println("Emp Id : " + arr1[i]);
-        }
-    }*/
-}
 
 
 
 
+select 23456, 0,0,0,0 from dual 
+union 
+select 23457, 0,0,9,0 from dual 
+union 
+select 23459, 0,0,9,8 from dual 
+union 
+select 23458, 2,0,0,0 from dual 
+union 
+select 23454, 0,2,0,0 from dual
 
-
-
-
-
-#include<stdio.h>
-#include<string.h>
-int main()
-{
-    printf("welcome\n");
-    FILE *fp = fopen("f1.txt","r");
-    char data[128];
-    char *d1;
-    while(fgets(data,128,fp)!=NULL){
-        d1=(char *)malloc(30);
-        printf("line is<%s>\n",data);
-        strcpy(d1,data);
-        putenv(d1);
-    }
-    fclose(fp);
-    system("./f1.sh");
-}
